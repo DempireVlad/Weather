@@ -9,6 +9,7 @@ import UnitsWrapper from "./components/UnitsWrapper";
 import ErrorMessage from "./components/ErrorMessage";
 import Loader from "./components/Loader";
 
+const getLongDay = (d) => new Date(d).toLocaleDateString("en-US", { weekday: "long" });
 function App() {
   const [weather, setWeather] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +20,7 @@ function App() {
     windSpeed: "kmh",
     precipitation: "mm",
   });
-  const [dayChecked, setDayChecked] = useState("Monday");
+  const [dayChecked, setDayChecked] = useState(getLongDay(new Date()));
   const [city, setCity] = useState("");
   const [locationName, setLocationName] = useState("Berlin, DE");
 
@@ -31,9 +32,7 @@ function App() {
   const filteredHourlyData = useMemo(() => {
     if (!weather || !weather.hourly) return [];
     return weather.hourly.time.reduce((acc, time, index) => {
-      const dayName = new Date(time).toLocaleDateString("en-US", {
-        weekday: "long",
-      });
+      const dayName = getLongDay(new Date(time));
       if (dayName === dayChecked) {
         acc.push({
           time: time,
@@ -87,7 +86,7 @@ function App() {
         setLocationName(
           `${geoData.results[0].name}, ${geoData.results[0].country}`,
         );
-        const data = await fetchWeatherData(latitude, longitude); 
+        const data = await fetchWeatherData(latitude, longitude);
         setWeather(data);
       }
     } catch (error) {
@@ -96,13 +95,17 @@ function App() {
     }
   };
 
+  const availableDays = useMemo(() => {
+    if (!weather?.daily?.time) return [];
+    return weather.daily.time.map((dateStr) => getLongDay(new Date(dateStr)));
+  }, [weather]);
+
   if (error) {
     return <ErrorMessage message={error} />;
   }
 
   if (!weather) {
     return <Loader />;
-
   }
 
   return (
@@ -188,6 +191,7 @@ function App() {
           <div className="hourly__header">
             <h3>Hourly forecast</h3>
             <DayDropdown
+              days={availableDays}
               dayChecked={dayChecked}
               setDayChecked={setDayChecked}
               isOpen={isOpen}

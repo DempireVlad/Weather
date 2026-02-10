@@ -1,14 +1,7 @@
-const days = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
 
-const DayDropdown = ({ dayChecked, setDayChecked, isOpen, setIsOpen }) => {
+
+const DayDropdown = ({ dayChecked, setDayChecked, isOpen, setIsOpen, days }) => {
+  const todayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
   return (
     <div className="dropdown">
       <button
@@ -16,7 +9,7 @@ const DayDropdown = ({ dayChecked, setDayChecked, isOpen, setIsOpen }) => {
         onClick={() => setIsOpen((prev) => !prev)}
         className="dropdown__button"
       >
-        {dayChecked}
+        {dayChecked === todayName ? "Today" : dayChecked}
         <span className="dropdown__icon"></span>
       </button>
 
@@ -33,7 +26,7 @@ const DayDropdown = ({ dayChecked, setDayChecked, isOpen, setIsOpen }) => {
                 setIsOpen(false);
               }}
             >
-              {day}
+              {day === todayName ? "Today" : day}
             </li>
           ))}
         </ul>
