@@ -1,0 +1,200 @@
+import { useState, useEffect, useMemo } from "react";
+import "./App.css";
+import DayCard from "./components/DayCard";
+import { getWeatherIcon } from "./weatherIcons";
+import HourCard from "./components/HourCard";
+import DayDropdown from "./components/DayDropDown";
+import Stats from "./components/Stats";
+import UnitsWrapper from "./components/UnitsWrapper";
+
+function App() {
+  const [weather, setWeather] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [unitsOpen, setUnitsOpen] = useState(false);
+  const [units, setUnits] = useState({
+    temperature: "celsius",
+    windSpeed: "kmh",
+    precipitation: "mm",
+  });
+  const [dayChecked, setDayChecked] = useState("Monday");
+  const [city, setCity] = useState("");
+  const [locationName, setLocationName] = useState("Berlin, DE");
+
+  const getDayName = (date) =>
+    new Date(date)
+      .toLocaleDateString("en-US", { weekday: "short" })
+      .toUpperCase();
+
+  const filteredHourlyData = useMemo(() => {
+    if (!weather || !weather.hourly) return [];
+    return weather.hourly.time.reduce((acc, time, index) => {
+      const dayName = new Date(time).toLocaleDateString("en-US", {
+        weekday: "long",
+      });
+      if (dayName === dayChecked) {
+        acc.push({
+          time: time,
+          temp: weather.hourly.temperature_2m[index],
+          weatherCode: weather.hourly.weather_code[index],
+        });
+      }
+      return acc;
+    }, []);
+  }, [weather, dayChecked]);
+
+  const fetchWeatherData = async (lat, lon) => {
+    
+    const response = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,precipitation,relative_humidity_2m,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&temperature_unit=${units.temperature}&wind_speed_unit=${units.windSpeed}&precipitation_unit=${units.precipitation}&timezone=auto`,
+    );
+    return await response.json();
+  };
+
+  useEffect(() => {
+    const getDefaultWeather = async () => {
+      try {
+        const data = await fetchWeatherData(52.52, 13.41);
+        setWeather(data);
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+    getDefaultWeather();
+  }, [units]);
+
+  const handleSearch = async () => {
+    if (!city) return;
+    try {
+      const geoResponse = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`,
+      );
+      const geoData = await geoResponse.json();
+
+      if (geoData.results) {
+        const { latitude, longitude } = geoData.results[0];
+        setLocationName(
+          `${geoData.results[0].name}, ${geoData.results[0].country}`,
+        );
+        const data = await fetchWeatherData(latitude, longitude); // ТА Ж САМА ФУНКЦІЯ!
+        setWeather(data);
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+    }
+  };
+
+  console.log(weather);
+
+  if (!weather) {
+    return <p>Loading...</p>;
+  }
+
+  return (
+    <div className="app">
+      <header className="header">
+        <div className="logo">
+          <img src="./src/assets/icons/logo.svg" alt="logo" />
+        </div>
+
+        <UnitsWrapper
+          unitsOpen={unitsOpen}
+          setUnitsOpen={setUnitsOpen}
+          units={units}
+          setUnits={setUnits}
+        />
+      </header>
+
+      <section className="hero">
+        <h1 className="hero__title">How’s the sky looking today?</h1>
+        <div className="search">
+          <input
+            type="text"
+            className="search__input"
+            placeholder="Search for a place..."
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearch(e);
+              }
+            }}
+          />
+          <button
+            type="submit"
+            className="search__button"
+            onClick={handleSearch}
+          >
+            Search
+          </button>
+        </div>
+      </section>
+
+      <main className="content">
+        <section className="left">
+          <div className="current">
+            <div className="current__info">
+              <p className="current__location">{locationName}</p>
+              <p className="current__date">
+                {new Date().toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
+
+            <div className="current__temp">
+              <img
+                src={getWeatherIcon(weather.current.weather_code)}
+                alt="weather icon"
+              />
+              <span>{weather.current.temperature_2m}°</span>
+            </div>
+          </div>
+          <Stats weather={weather} />
+          <div className="daily">
+            <h3 className="daily__title">Daily forecast</h3>
+            <div className="daily__list">
+              {weather.daily.time.map((day, index) => (
+                <DayCard
+                  key={index}
+                  day={getDayName(day)}
+                  max={weather.daily.temperature_2m_max[index]}
+                  min={weather.daily.temperature_2m_min[index]}
+                  icon={getWeatherIcon(weather.daily.weather_code[index])}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+        <div className="hourly">
+          <div className="hourly__header">
+            <h3>Hourly forecast</h3>
+            <DayDropdown
+              dayChecked={dayChecked}
+              setDayChecked={setDayChecked}
+              isOpen={isOpen}
+              setIsOpen={setIsOpen}
+            />
+          </div>
+          <div className="hourly__list">
+            {filteredHourlyData.map((hour, index) => (
+              <HourCard
+                key={index}
+                time={new Date(hour.time).toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  hour12: true,
+                })}
+                temp={hour.temp}
+                icon={getWeatherIcon(hour.weatherCode)}
+              />
+            ))}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default App;
