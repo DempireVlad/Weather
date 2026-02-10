@@ -6,11 +6,14 @@ import HourCard from "./components/HourCard";
 import DayDropdown from "./components/DayDropDown";
 import Stats from "./components/Stats";
 import UnitsWrapper from "./components/UnitsWrapper";
+import ErrorMessage from "./components/ErrorMessage";
+import Loader from "./components/Loader";
 
 function App() {
   const [weather, setWeather] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [unitsOpen, setUnitsOpen] = useState(false);
+  const [error, setError] = useState(null);
   const [units, setUnits] = useState({
     temperature: "celsius",
     windSpeed: "kmh",
@@ -43,11 +46,20 @@ function App() {
   }, [weather, dayChecked]);
 
   const fetchWeatherData = async (lat, lon) => {
-    
-    const response = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,precipitation,relative_humidity_2m,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&temperature_unit=${units.temperature}&wind_speed_unit=${units.windSpeed}&precipitation_unit=${units.precipitation}&timezone=auto`,
-    );
-    return await response.json();
+    setError(null);
+    try {
+      const response = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,precipitation,relative_humidity_2m,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&temperature_unit=${units.temperature}&wind_speed_unit=${units.windSpeed}&precipitation_unit=${units.precipitation}&timezone=auto`,
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch weather data");
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      setError("Something went wrong. Please try again later.");
+      return null;
+    }
   };
 
   useEffect(() => {
@@ -56,7 +68,7 @@ function App() {
         const data = await fetchWeatherData(52.52, 13.41);
         setWeather(data);
       } catch (error) {
-        console.error("Error:", error);
+        console.log("Error:", error);
       }
     };
     getDefaultWeather();
@@ -75,18 +87,22 @@ function App() {
         setLocationName(
           `${geoData.results[0].name}, ${geoData.results[0].country}`,
         );
-        const data = await fetchWeatherData(latitude, longitude); // ТА Ж САМА ФУНКЦІЯ!
+        const data = await fetchWeatherData(latitude, longitude); 
         setWeather(data);
       }
     } catch (error) {
-      console.error("Search error:", error);
+      console.log("Search error:", error);
+      setError(error.message);
     }
   };
 
-  console.log(weather);
+  if (error) {
+    return <ErrorMessage message={error} />;
+  }
 
   if (!weather) {
-    return <p>Loading...</p>;
+    return <Loader />;
+
   }
 
   return (
