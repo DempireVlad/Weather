@@ -440,14 +440,21 @@ h1 {
   padding-top: 48px;
   color: var(--color-primary);
   font-family: var(--font-secondary);
+
+  h3 {
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 120%;
+    padding-bottom: 20px;
+  }
 }
 
-.daily__title {
+/* .daily__title {
   font-weight: 600;
   font-size: 20px;
   line-height: 120%;
   padding-bottom: 20px;
-}
+} */
 
 .daily__list {
   display: flex;
@@ -497,11 +504,11 @@ h1 {
 }
 
 .day__temp__max {
-font-weight: 500;
-font-size: 16px;
-line-height: 120%;
-text-align: center;
-color: #FFFFFF;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 120%;
+  text-align: center;
+  color: #FFFFFF;
 }
 
 .loader-wrapper {
@@ -509,20 +516,20 @@ color: #FFFFFF;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh; 
+  height: 100vh;
   gap: 20px;
 }
 
-.error-screen{
+.error-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh; 
+  height: 100vh;
   gap: 20px;
   color: var(--color-primary);
 
-  button{
+  button {
     font-family: var(--font-secondary);
     font-style: normal;
     font-weight: 500;
@@ -535,7 +542,7 @@ color: #FFFFFF;
     background: var(--color-button-s);
     border-radius: 12px;
   }
-  
+
 }
 
 @font-face {

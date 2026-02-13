@@ -1,5 +1,9 @@
 const UnitsWrapper = ({ unitsOpen, setUnitsOpen, units, setUnits }) => {
     return(
+       <header className="header">
+        <div className="logo">
+          <img src="./src/assets/icons/logo.svg" alt="logo" />
+        </div> 
             <div className="units-wrapper">
           <button className="units" onClick={() => setUnitsOpen(!unitsOpen)}>
             Units
@@ -38,6 +42,7 @@ const UnitsWrapper = ({ unitsOpen, setUnitsOpen, units, setUnits }) => {
             </div>
           )}
         </div>
+        </header>
     )
 }
 

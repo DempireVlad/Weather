@@ -8,8 +8,10 @@ import Stats from "./components/Stats";
 import UnitsWrapper from "./components/UnitsWrapper";
 import ErrorMessage from "./components/ErrorMessage";
 import Loader from "./components/Loader";
+import Hero from "./components/Hero";
 
-const getLongDay = (d) => new Date(d).toLocaleDateString("en-US", { weekday: "long" });
+const getLongDay = (d) =>
+  new Date(d).toLocaleDateString("en-US", { weekday: "long" });
 function App() {
   const [weather, setWeather] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -110,43 +112,14 @@ function App() {
 
   return (
     <div className="app">
-      <header className="header">
-        <div className="logo">
-          <img src="./src/assets/icons/logo.svg" alt="logo" />
-        </div>
+      <UnitsWrapper
+        unitsOpen={unitsOpen}
+        setUnitsOpen={setUnitsOpen}
+        units={units}
+        setUnits={setUnits}
+      />
 
-        <UnitsWrapper
-          unitsOpen={unitsOpen}
-          setUnitsOpen={setUnitsOpen}
-          units={units}
-          setUnits={setUnits}
-        />
-      </header>
-
-      <section className="hero">
-        <h1 className="hero__title">How’s the sky looking today?</h1>
-        <div className="search">
-          <input
-            type="text"
-            className="search__input"
-            placeholder="Search for a place..."
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleSearch(e);
-              }
-            }}
-          />
-          <button
-            type="submit"
-            className="search__button"
-            onClick={handleSearch}
-          >
-            Search
-          </button>
-        </div>
-      </section>
+      <Hero city={city} setCity={setCity} handleSearch={handleSearch} />
 
       <main className="content">
         <section className="left">
@@ -173,7 +146,7 @@ function App() {
           </div>
           <Stats weather={weather} />
           <div className="daily">
-            <h3 className="daily__title">Daily forecast</h3>
+            <h3 >Daily forecast</h3>
             <div className="daily__list">
               {weather.daily.time.map((day, index) => (
                 <DayCard
